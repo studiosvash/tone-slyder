@@ -1,0 +1,62 @@
+{
+  "name": "tone-slyder",
+  "version": "0.1.0",
+  "description": "An AI-powered tone adjustment tool that simplifies content rewriting through intuitive slider controls",
+  "keywords": [
+    "ai",
+    "writing",
+    "tone",
+    "rewriting",
+    "content",
+    "gpt",
+    "claude",
+    "extension"
+  ],
+  "homepage": "https://github.com/toneslyder/tone-slyder",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toneslyder/tone-slyder.git"
+  },
+  "license": "MIT",
+  "author": "Tone Slyder Team",
+  "workspaces": [
+    "backend",
+    "frontend",
+    "extensions/*",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build:shared": "cd shared && npm run build",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm run test",
+    "test:frontend": "cd frontend && npm run test",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "format": "prettier --write .",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf node_modules backend/node_modules frontend/node_modules backend/dist frontend/dist"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "concurrently": "^8.2.0",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-react": "^7.33.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^3.1.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

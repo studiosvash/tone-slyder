@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "baseUrl": "./",
+    "paths": {
+      "@tone-slyder/shared/*": ["shared/*"],
+      "@/backend/*": ["backend/src/*"],
+      "@/frontend/*": ["frontend/src/*"]
+    },
+    "types": ["node", "jest"]
+  },
+  "include": [
+    "backend/src/**/*",
+    "frontend/src/**/*", 
+    "shared/**/*",
+    "extensions/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ],
+  "references": [
+    { "path": "./backend" },
+    { "path": "./frontend" },
+    { "path": "./shared" }
+  ]
+}

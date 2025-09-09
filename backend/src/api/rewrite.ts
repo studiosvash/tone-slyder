@@ -68,16 +68,19 @@ rewriteRouter.post('/',
       }
 
       // Check user's remaining quota
-      const canProceed = await meteringService.checkQuota(
+      const quotaCheck = await meteringService.checkQuota(
         requestData.userId || 'anonymous',
-        requestData.model || 'gpt-3.5-turbo'
+        requestData.model || 'gpt-3.5-turbo',
+        req.user?.tier
       );
 
-      if (!canProceed) {
+      if (!quotaCheck.canProceed) {
         return res.status(429).json({
           success: false,
           error: 'quota_exceeded',
-          message: 'Monthly rewrite quota exceeded. Please upgrade your plan or wait for next month.'
+          message: quotaCheck.reason || 'Request quota exceeded',
+          usage: quotaCheck.usage,
+          limits: quotaCheck.limits
         });
       }
 

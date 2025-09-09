@@ -13,6 +13,7 @@ import { rewriteRouter } from './api/rewrite';
 import { presetsRouter } from './api/presets';
 import { slidersRouter } from './api/sliders';
 import { authRouter } from './api/auth';
+import { usageRouter } from './api/usage';
 
 const app = express();
 
@@ -74,6 +75,7 @@ app.use('/api/rewrite', rewriteRouter);
 app.use('/api/presets', presetsRouter);
 app.use('/api/sliders', slidersRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/usage', usageRouter);
 
 // API documentation
 app.get('/api', (req, res) => {
@@ -87,6 +89,7 @@ app.get('/api', (req, res) => {
       presets: 'GET|POST /api/presets',
       sliders: 'GET|POST /api/sliders',
       auth: 'POST /api/auth/login|register',
+      usage: 'GET /api/usage',
     },
     documentation: 'https://docs.toneslyder.com/api',
   });

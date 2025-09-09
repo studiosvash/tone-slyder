@@ -1,8 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { SliderPanel } from './components/SliderPanel';
 import { CORE_SLIDERS, CoreSliders, TonePreset, CustomSlider } from './types/shared';
-import { Send, RotateCcw, Loader, CheckCircle, AlertCircle } from 'lucide-react';
+import { Send, RotateCcw, Loader, CheckCircle, AlertCircle, Save, History } from 'lucide-react';
 import axios from 'axios';
+import { useLocalStorage, useAutoSave, useRecentItems, useUserPreferences } from './hooks/useLocalStorage';
 
 interface RewriteResponse {
   rewrittenText: string;
@@ -14,30 +15,50 @@ interface RewriteResponse {
 }
 
 function App() {
-  // Core slider states
-  const [coreValues, setCoreValues] = useState<CoreSliders>({
-    formality: CORE_SLIDERS.formality.defaultValue,
-    conversational: CORE_SLIDERS.conversational.defaultValue,
-    informativeness: CORE_SLIDERS.informativeness.defaultValue,
-    authoritativeness: CORE_SLIDERS.authoritativeness.defaultValue
-  });
+  // User preferences with localStorage persistence
+  const { preferences, updatePreference } = useUserPreferences();
+  
+  // Core slider states with localStorage persistence
+  const [coreValues, setCoreValues] = useLocalStorage<CoreSliders>(
+    'tone-slyder-slider-values',
+    preferences.defaultSliderValues || {
+      formality: CORE_SLIDERS.formality.defaultValue,
+      conversational: CORE_SLIDERS.conversational.defaultValue,
+      informativeness: CORE_SLIDERS.informativeness.defaultValue,
+      authoritativeness: CORE_SLIDERS.authoritativeness.defaultValue
+    }
+  );
 
-  // Custom sliders (empty for now)
+  // Custom sliders with localStorage
   const [customSliders] = useState<CustomSlider[]>([]);
-  const [customValues] = useState<Record<string, number>>({});
+  const [customValues, setCustomValues] = useLocalStorage<Record<string, number>>(
+    'tone-slyder-custom-values',
+    {}
+  );
 
-  // Text content
-  const [originalText, setOriginalText] = useState('');
+  // Text content with localStorage persistence and auto-save
+  const [originalText, setOriginalText] = useLocalStorage('tone-slyder-draft-text', '');
   const [rewrittenText, setRewrittenText] = useState('');
 
-  // Guardrails
-  const [requiredWords, setRequiredWords] = useState('');
-  const [bannedWords, setBannedWords] = useState('');
+  // Guardrails with localStorage persistence
+  const [requiredWords, setRequiredWords] = useLocalStorage('tone-slyder-required-words', '');
+  const [bannedWords, setBannedWords] = useLocalStorage('tone-slyder-banned-words', '');
+
+  // Recent slider combinations for quick access
+  const [recentCombinations, addRecentCombination] = useRecentItems<{
+    name: string;
+    sliderValues: CoreSliders;
+    timestamp: number;
+  }>('tone-slyder-recent-combinations', 5);
+
+  // Auto-save text content every 2 seconds
+  useAutoSave('tone-slyder-draft-text', originalText, 2000);
 
   // UI state
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [showRecentCombinations, setShowRecentCombinations] = useState(false);
 
   const handleCoreSliderChange = useCallback((sliderId: keyof CoreSliders, value: number) => {
     setCoreValues(prev => ({
@@ -64,13 +85,32 @@ function App() {
   }, [coreValues]);
 
   const handleResetSliders = useCallback(() => {
-    setCoreValues({
+    const defaultValues = {
       formality: CORE_SLIDERS.formality.defaultValue,
       conversational: CORE_SLIDERS.conversational.defaultValue,
       informativeness: CORE_SLIDERS.informativeness.defaultValue,
       authoritativeness: CORE_SLIDERS.authoritativeness.defaultValue
-    });
-  }, []);
+    };
+    setCoreValues(defaultValues);
+  }, [setCoreValues]);
+
+  const handleSaveCurrentCombination = useCallback(() => {
+    const combination = {
+      name: `Combination ${new Date().toLocaleString()}`,
+      sliderValues: coreValues,
+      timestamp: Date.now()
+    };
+    addRecentCombination(combination);
+  }, [coreValues, addRecentCombination]);
+
+  const handleLoadRecentCombination = useCallback((combination: {
+    name: string;
+    sliderValues: CoreSliders;
+    timestamp: number;
+  }) => {
+    setCoreValues(combination.sliderValues);
+    setShowRecentCombinations(false);
+  }, [setCoreValues]);
 
   const handleAddCustomSlider = useCallback(() => {
     // TODO: Implement custom slider creation
@@ -109,6 +149,14 @@ function App() {
         setRewrittenText(response.data.data.rewrittenText);
         setSuccess(true);
         
+        // Auto-save successful combination for quick access
+        const successfulCombination = {
+          name: `Successful - ${new Date().toLocaleTimeString()}`,
+          sliderValues: coreValues,
+          timestamp: Date.now()
+        };
+        addRecentCombination(successfulCombination);
+        
         if (response.data.data.guardrailViolations && response.data.data.guardrailViolations.length > 0) {
           setError(`Warning: ${response.data.data.guardrailViolations.join(', ')}`);
         }
@@ -144,6 +192,54 @@ function App() {
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Tone Slyder</h1>
                 <p className="text-sm text-gray-500">AI-powered tone adjustment</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {originalText && (
+                <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                  📝 Draft saved
+                </span>
+              )}
+              <button
+                onClick={handleSaveCurrentCombination}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 border rounded-lg hover:bg-gray-50 transition-colors"
+                title="Save current slider combination"
+              >
+                <Save size={14} />
+                Save
+              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setShowRecentCombinations(!showRecentCombinations)}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 border rounded-lg hover:bg-gray-50 transition-colors"
+                  title="Recent combinations"
+                >
+                  <History size={14} />
+                  Recent ({recentCombinations.length})
+                </button>
+                {showRecentCombinations && recentCombinations.length > 0 && (
+                  <div className="absolute right-0 top-full mt-1 w-64 bg-white border rounded-lg shadow-lg z-10">
+                    <div className="p-2 border-b">
+                      <h4 className="text-sm font-medium text-gray-900">Recent Combinations</h4>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto">
+                      {recentCombinations.map((combination, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleLoadRecentCombination(combination)}
+                          className="w-full text-left p-2 hover:bg-gray-50 border-b last:border-b-0 transition-colors"
+                        >
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            {combination.name}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            F:{combination.sliderValues.formality} C:{combination.sliderValues.conversational} I:{combination.sliderValues.informativeness} A:{combination.sliderValues.authoritativeness}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

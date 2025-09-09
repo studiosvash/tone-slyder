@@ -148,7 +148,7 @@ rewriteRouter.post('/',
 
       res.json(response);
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error processing rewrite request', {
         error: error.message,
         stack: error.stack,
@@ -222,7 +222,7 @@ rewriteRouter.post('/batch',
 
         results.push(result);
         
-      } catch (error) {
+      } catch (error: any) {
         errors.push({
           index: i,
           error: error.message

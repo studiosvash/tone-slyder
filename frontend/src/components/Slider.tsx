@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { SliderConfig } from '@tone-slyder/shared/types';
+import { SliderConfig } from '../types/shared';
 import { HelpCircle } from 'lucide-react';
 
 interface SliderProps {
@@ -167,8 +167,8 @@ export const Slider: React.FC<SliderProps> = ({
 
 // Specialized component for core sliders
 export const CoreSlider: React.FC<Omit<SliderProps, 'config'> & { 
-  sliderId: keyof typeof import('@tone-slyder/shared/types').CORE_SLIDERS 
+  sliderId: keyof typeof import('../types/shared').CORE_SLIDERS 
 }> = ({ sliderId, ...props }) => {
-  const config = import('@tone-slyder/shared/types').CORE_SLIDERS[sliderId];
+  const config = import('../types/shared').CORE_SLIDERS[sliderId];
   return <Slider config={config} {...props} />;
 };

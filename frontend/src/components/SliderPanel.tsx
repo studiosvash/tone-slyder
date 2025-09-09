@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { Slider } from './Slider';
 import { PresetSelector } from './PresetSelector';
-import { CORE_SLIDERS, CoreSliders, CustomSlider, TonePreset } from '@tone-slyder/shared/types';
+import { CORE_SLIDERS, CoreSliders, CustomSlider, TonePreset } from '../types/shared';
 import { RotateCcw, Plus, Settings } from 'lucide-react';
 
 interface SliderPanelProps {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DEFAULT_PRESETS, TonePreset } from '@tone-slyder/shared/types';
+import { DEFAULT_PRESETS, TonePreset } from '../types/shared';
 import { ChevronDown, BookOpen, Briefcase, MessageCircle, FileText, Star } from 'lucide-react';
 
 interface PresetSelectorProps {
